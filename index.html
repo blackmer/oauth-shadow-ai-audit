@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'">
+    <title>OAuth & Shadow AI Control Audit Dashboard</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header>
+        <h1>OAuth & Shadow AI Control Audit Dashboard</h1>
+        <p class="version">v0.1.0</p>
+    </header>
+
+    <main id="app">
+        <!-- Import panel renders here when no data is loaded -->
+        <section id="import-panel">
+            <h2>Import Data Files</h2>
+            <p>Upload exports from your Google Workspace admin console and Microsoft Entra ID / Graph Explorer.</p>
+
+            <div class="import-grid">
+                <div class="import-slot" data-slot="G1">
+                    <h3>G1 — Google Accessed Apps (CSV)</h3>
+                    <p class="slot-source">Admin Console → Security → API controls → Accessed apps → Download</p>
+                    <input type="file" accept=".csv" data-slot="G1">
+                    <div class="slot-status"></div>
+                </div>
+
+                <div class="import-slot" data-slot="G2">
+                    <h3>G2 — Google OAuth Log (CSV)</h3>
+                    <p class="slot-source">Admin Console → Reporting → OAuth log events → Download</p>
+                    <input type="file" accept=".csv" data-slot="G2">
+                    <div class="slot-status"></div>
+                </div>
+
+                <div class="import-slot" data-slot="M1">
+                    <h3>M1 — Microsoft Service Principals (CSV)</h3>
+                    <p class="slot-source">Entra → Enterprise Applications → All Applications → Download</p>
+                    <input type="file" accept=".csv" data-slot="M1">
+                    <div class="slot-status"></div>
+                </div>
+
+                <div class="import-slot" data-slot="M2">
+                    <h3>M2 — Delegated Permissions (JSON)</h3>
+                    <p class="slot-source">Graph Explorer → oauth2PermissionGrants</p>
+                    <input type="file" accept=".json" data-slot="M2">
+                    <div class="slot-status"></div>
+                </div>
+
+                <div class="import-slot" data-slot="M3">
+                    <h3>M3 — Service Principals + App Roles (JSON)</h3>
+                    <p class="slot-source">Graph Explorer → servicePrincipals?$expand=appRoleAssignments</p>
+                    <p class="slot-note">Multiple files accepted for paginated results.</p>
+                    <input type="file" accept=".json" data-slot="M3" multiple>
+                    <div class="slot-status"></div>
+                </div>
+
+                <div class="import-slot" data-slot="M4">
+                    <h3>M4 — Sign-In Activity (JSON)</h3>
+                    <p class="slot-source">Graph Explorer → reports/servicePrincipalSignInActivities</p>
+                    <p class="slot-note">Requires Entra ID P1 license.</p>
+                    <input type="file" accept=".json" data-slot="M4">
+                    <div class="slot-status"></div>
+                </div>
+            </div>
+
+            <div id="import-summary" class="hidden">
+                <h3>Import Summary</h3>
+                <div id="import-results"></div>
+            </div>
+        </section>
+
+        <!-- Dashboard renders here after data is loaded -->
+        <section id="dashboard" class="hidden">
+        </section>
+    </main>
+
+    <!-- Papa Parse for robust CSV handling (multiline quoted fields in G2) -->
+    <script src="lib/papaparse.min.js" integrity="sha384-D/t0ZMqQW31H3az8ktEiNb39wyKnS82iFY52QPACM+IjKW3jDUhyIgh2PApRqJZs" crossorigin="anonymous"></script>
+    <script type="module" src="src/ingest.js"></script>
+    <script type="module" src="src/ui.js"></script>
+</body>
+</html>
