@@ -224,6 +224,14 @@ header .version { color: var(--color-text-muted); font-size: 0.85rem; }
     margin-bottom: 0.75rem;
 }
 
+.drilldown-description {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    max-width: 800px;
+}
+
 .drilldown-empty {
     color: var(--color-text-muted);
     font-style: italic;
@@ -249,8 +257,10 @@ header .version { color: var(--color-text-muted); font-size: 0.85rem; }
     user-select: none;
 }
 .drilldown-table th.sortable:hover { background: #e9ecef; }
-.drilldown-table th.sorted-asc::after { content: ' \u25B2'; font-size: 0.65rem; }
-.drilldown-table th.sorted-desc::after { content: ' \u25BC'; font-size: 0.65rem; }
+.drilldown-table th[title] { cursor: help; text-decoration: underline dotted var(--color-text-muted); text-underline-offset: 3px; }
+.drilldown-table th.sortable[title] { cursor: pointer; }
+.drilldown-table th.sorted-asc::after { content: ' \25B2'; font-size: 0.65rem; }
+.drilldown-table th.sorted-desc::after { content: ' \25BC'; font-size: 0.65rem; }
 
 .drilldown-table td {
     border: 1px solid var(--color-border);

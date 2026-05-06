@@ -303,6 +303,37 @@ function createIOCTile() {
 }
 
 // ============================================================================
+// Tile and drill-down descriptions
+// ============================================================================
+
+const TILE_INFO = {
+    critical: {
+        title: 'Apps with Tier 1 (Critical) Access',
+        description: 'Apps that hold at least one OAuth scope classified as Tier 1 (Critical) in the scope risk taxonomy. Tier 1 scopes grant tenant-wide write access to identity, mail, or files — or in Google, domain-wide delegation. These represent the highest-risk OAuth grants and should be reviewed for business justification.',
+    },
+    stale: {
+        title: 'Apps Granted >90 Days Ago',
+        description: 'Apps whose OAuth access was granted more than 90 days ago. Long-lived grants accumulate risk — the app may no longer be in use, the vendor relationship may have changed, or the original business justification may no longer apply. Review for revocation or re-authorization.',
+    },
+    unused: {
+        title: 'Apps Unused >30 Days',
+        description: 'Apps with valid OAuth tokens that have not been used in over 30 days. Unused tokens are dormant attack surface — if the app or its credentials are compromised, the token still grants access. Consider revoking tokens for apps with no recent activity.',
+    },
+    grantors: {
+        title: 'All Apps by Grantor',
+        description: 'Breakdown of which users or admin processes granted OAuth access. In single-admin tenants, any grantor other than the expected administrator is an anomaly worth investigating. "Admin consent" indicates a tenant-wide grant applied by an administrator. "Unknown" means the grant predates the audit log retention window.',
+    },
+    chained: {
+        title: 'Chained Grants (App-to-App)',
+        description: 'Apps where the granting principal is itself a service principal or OAuth application, rather than a human user. This is consent chaining — one app granting access to another — which can indicate legitimate automation or an unauthorized lateral movement pattern. Each chained grant should be traced to its originating human authorization.',
+    },
+    ioc: {
+        title: 'IOC Matches',
+        description: 'Apps whose Client ID matches an entry in your loaded Indicator of Compromise (IOC) list. A match means this exact OAuth application has been flagged — by a breach disclosure, threat intelligence feed, or your own internal finding. Matched apps require immediate investigation and likely revocation.',
+    },
+};
+
+// ============================================================================
 // Drilldown interaction
 // ============================================================================
 
@@ -311,38 +342,31 @@ function openDrilldown(tileKey) {
     if (!container || !state.tiles) return;
 
     state.drilldown.tile = tileKey;
+    const info = TILE_INFO[tileKey] || { title: 'All Apps', description: '' };
     let apps = [];
-    let title = '';
 
     switch (tileKey) {
         case 'critical':
             apps = state.tiles.critical.apps;
-            title = 'Apps with Tier 1 (Critical) Access';
             break;
         case 'stale':
             apps = state.tiles.stale.apps;
-            title = 'Apps Granted >90 Days Ago';
             break;
         case 'unused':
             apps = state.tiles.unused.apps;
-            title = 'Apps Unused >30 Days';
             break;
         case 'grantors':
             apps = state.filteredApps;
-            title = 'All Apps by Grantor';
             state.drilldown.sort = 'grantor';
             break;
         case 'chained':
             apps = state.tiles.chained.apps;
-            title = 'Chained Grants (App-to-App)';
             break;
         case 'ioc':
             apps = state.tiles.ioc.apps;
-            title = 'IOC Matches';
             break;
         default:
             apps = state.filteredApps;
-            title = 'All Apps';
     }
 
     // Sort
@@ -351,7 +375,8 @@ function openDrilldown(tileKey) {
 
     // Render
     renderDrilldown(container, apps, {
-        title,
+        title: info.title,
+        description: info.description,
         sortColumn: state.drilldown.sort,
         sortDirection: state.drilldown.dir,
         onSort: (colKey) => {

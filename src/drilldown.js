@@ -17,29 +17,33 @@ export const COLUMNS = [
     {
         key: 'name',
         label: 'App Name',
+        tooltip: 'The display name of the OAuth application or service principal.',
         sortable: true,
         render: app => app.name || '(unnamed)',
     },
     {
         key: 'platform',
         label: 'Platform',
+        tooltip: 'Whether this app is registered in Google Workspace or Microsoft Entra ID.',
         sortable: true,
         render: app => app.platform === 'google' ? 'Google' : 'Microsoft',
     },
     {
         key: 'publisher',
         label: 'Publisher',
+        tooltip: 'The verified publisher of the application, if available.',
         sortable: true,
-        render: app => app.publisher || '—',
+        render: app => app.publisher || '\u2014',
     },
     {
         key: 'days_since_granted',
         label: 'Days Since Granted',
+        tooltip: 'How many days ago OAuth access was granted. Older grants accumulate risk and may no longer be needed. Derived from the consent event log.',
         sortable: true,
         render: app => {
-            if (!app.granted_at) return app.has_g2_data === false ? 'Predates log' : '—';
+            if (!app.granted_at) return app.has_g2_data === false ? 'Predates log' : '\u2014';
             const days = Math.floor((Date.now() - new Date(app.granted_at).getTime()) / 86400000);
-            return isNaN(days) ? '—' : String(days);
+            return isNaN(days) ? '\u2014' : String(days);
         },
         sortValue: app => {
             if (!app.granted_at) return Infinity;
@@ -49,11 +53,12 @@ export const COLUMNS = [
     {
         key: 'days_since_used',
         label: 'Days Since Last Used',
+        tooltip: 'How many days since the app last used its OAuth token. Dormant tokens are attack surface. N/A means usage data is not available for this platform.',
         sortable: true,
         render: app => {
-            if (!app.last_used_at) return app.platform === 'google' ? 'N/A' : '—';
+            if (!app.last_used_at) return app.platform === 'google' ? 'N/A' : '\u2014';
             const days = Math.floor((Date.now() - new Date(app.last_used_at).getTime()) / 86400000);
-            return isNaN(days) ? '—' : String(days);
+            return isNaN(days) ? '\u2014' : String(days);
         },
         sortValue: app => {
             if (!app.last_used_at) return Infinity;
@@ -63,6 +68,7 @@ export const COLUMNS = [
     {
         key: 'highest_tier',
         label: 'Access Level',
+        tooltip: 'The highest risk tier among all scopes granted to this app. Tier 1 = Critical (tenant-wide write), Tier 2 = High (tenant read or user write), Tier 3 = Moderate, Tier 4 = Low.',
         sortable: true,
         render: app => {
             if (app.highest_tier === null) return 'No scopes';
@@ -78,32 +84,34 @@ export const COLUMNS = [
     {
         key: 'grantor',
         label: 'Grantor',
+        tooltip: 'The user or process that authorized this app. "Admin consent" = tenant-wide grant by an administrator. "Unknown" = predates the audit log retention window.',
         sortable: true,
         render: app => app.grantor || 'Unknown',
     },
     {
         key: 'verification',
         label: 'Verified',
+        tooltip: 'Whether the app publisher has been verified by Google or Microsoft. Unverified apps have not passed platform review.',
         sortable: true,
         render: app => {
             if (app.publisher_verified === true) return 'Yes';
             if (app.publisher_verified === false) return 'No';
-            return '—';
+            return '\u2014';
         },
     },
     {
         key: 'scopes',
         label: 'Scopes',
+        tooltip: 'The OAuth permission scopes granted to this app. Each scope defines a specific type of access (e.g., read mail, write files).',
         sortable: false,
         render: app => (app.scopes || []).join(', ') || 'None',
     },
     {
         key: 'admin_policy',
         label: 'Admin Policy',
+        tooltip: 'The Google Workspace admin policy applied to this app: Trust (allowed), Limited (restricted), Block (denied), or Not configured (no policy set).',
         sortable: true,
-        render: app => app.admin_policy || '—',
-        // Only meaningful for Google apps
-        visible: app => app.platform === 'google',
+        render: app => app.admin_policy || '\u2014',
     },
 ];
 
@@ -153,6 +161,7 @@ export function sortApps(apps, columnKey, direction = 'asc') {
  * @param {Array} apps - Apps to display
  * @param {object} options
  * @param {string} options.title - Table title
+ * @param {string} options.description - Contextual description of what this drill-down shows
  * @param {string} options.sortColumn - Currently sorted column key
  * @param {string} options.sortDirection - "asc" or "desc"
  * @param {function} options.onSort - Callback when sort header clicked: (columnKey) => void
@@ -161,6 +170,7 @@ export function sortApps(apps, columnKey, direction = 'asc') {
 export function renderDrilldown(container, apps, options = {}) {
     const {
         title = 'Drill-Down',
+        description = '',
         sortColumn = null,
         sortDirection = 'asc',
         onSort = null,
@@ -178,6 +188,14 @@ export function renderDrilldown(container, apps, options = {}) {
     const header = document.createElement('h3');
     header.textContent = `${title} (${apps.length} app${apps.length !== 1 ? 's' : ''})`;
     container.appendChild(header);
+
+    // Description
+    if (description) {
+        const desc = document.createElement('p');
+        desc.className = 'drilldown-description';
+        desc.textContent = description;
+        container.appendChild(desc);
+    }
 
     if (apps.length === 0) {
         const empty = document.createElement('p');
@@ -197,6 +215,7 @@ export function renderDrilldown(container, apps, options = {}) {
     for (const col of columns) {
         const th = document.createElement('th');
         th.textContent = col.label;
+        if (col.tooltip) th.title = col.tooltip;
         th.dataset.column = col.key;
 
         if (col.sortable && onSort) {
