@@ -116,10 +116,10 @@ The scope risk taxonomy (`taxonomy/taxonomy-google.json`, `taxonomy/taxonomy-mic
 
 | Tier | Level | Description |
 |------|-------|-------------|
-| 1 | Critical | Tenant-wide write to identity, mail, or files. Application-type permissions that act without user context. |
-| 2 | High | Tenant-wide read OR user-scoped write to sensitive resources (mail, full drive). |
-| 3 | Moderate | User-scoped read to sensitive resources, or write to bounded resources. |
-| 4 | Low | Profile, openid, basic identity claims, app-specific data. |
+| Tier 1 | Critical | Tenant-wide write to identity, mail, or files. Application-type permissions that act without user context. |
+| Tier 2 | High | Tenant-wide read OR user-scoped write to sensitive resources (mail, full drive). |
+| Tier 3 | Moderate | User-scoped read to sensitive resources, or write to bounded resources. |
+| Tier 4 | Low | Profile, openid, basic identity claims, app-specific data. |
 
 ### Microsoft delegated vs. application
 
