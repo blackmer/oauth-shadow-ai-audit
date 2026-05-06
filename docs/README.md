@@ -161,6 +161,10 @@ See `iocs/iocs.example.json` for the expected schema. Match is on `client_id` on
 - Content Security Policy restricts script and resource loading.
 - Papa Parse bundled locally with Subresource Integrity hash.
 
+### Network verification
+
+For high-assurance verification, open the dashboard in **Incognito mode** (or a clean browser profile) with extensions disabled and inspect the Network tab in DevTools. A clean load should show only local requests with zero external domains or third-party initiators. Browser extensions can inject scripts into any page context — these are not dashboard-originated, but they will appear in a normal-profile network trace. The canonical reference for a clean load is `docs/security-verification-network-trace.png`.
+
 ## License
 
 MIT
