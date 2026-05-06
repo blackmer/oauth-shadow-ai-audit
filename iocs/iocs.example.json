@@ -1,0 +1,25 @@
+{
+  "$schema_docs": {
+    "description": "IOC list for the OAuth & Shadow AI Control Audit Dashboard. Match is on client_id only — app name is informational, never used as a match key.",
+    "fields": {
+      "client_id": "OAuth Client ID (Google) or appId (Microsoft). Primary match key.",
+      "name": "Human-readable app name. Informational only.",
+      "platform": "One of: google, microsoft, any. Scopes the match to the relevant platform.",
+      "severity": "One of: critical, high, medium, low. Drives IOC banner and row highlighting.",
+      "source": "Where this IOC came from — breach disclosure, threat intel feed, internal finding, etc.",
+      "added": "ISO 8601 date when the entry was added to this list.",
+      "notes": "Optional free-text context."
+    }
+  },
+  "iocs": [
+    {
+      "client_id": "110671459871-30f1spbu0hptbs60cb4vsmv79i7bbvqj.apps.googleusercontent.com",
+      "name": "Context.ai",
+      "platform": "google",
+      "severity": "critical",
+      "source": "Vercel/Context.ai breach disclosure, 2026-04",
+      "added": "2026-05-04",
+      "notes": "OAuth app used by Context.ai to access Gmail and Drive. Breach disclosed April 2026."
+    }
+  ]
+}

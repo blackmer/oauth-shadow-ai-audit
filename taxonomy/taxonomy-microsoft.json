@@ -1,0 +1,522 @@
+{
+  "version": "1.0.0",
+  "platform": "microsoft",
+  "tier_definitions": {
+    "1": "Critical — Tenant-wide write to identity, mail, or files (application context); full admin",
+    "2": "High — Tenant-wide read OR user-scoped write to sensitive resources",
+    "3": "Moderate — User-scoped read to sensitive resources, or write to bounded resources",
+    "4": "Low — Profile, openid, basic identity claims, offline_access"
+  },
+  "scopes": [
+    {
+      "scope": "Mail.ReadWrite",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read/write every mailbox in tenant without user context"
+    },
+    {
+      "scope": "Mail.ReadWrite",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read/write only the consenting user's mailbox"
+    },
+    {
+      "scope": "Mail.Read",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read every mailbox in tenant — full mail exfiltration"
+    },
+    {
+      "scope": "Mail.Read",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read consenting user's mail — single-user exfiltration"
+    },
+    {
+      "scope": "Mail.Send",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: send mail as any user — tenant-wide impersonation"
+    },
+    {
+      "scope": "Mail.Send",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: send mail as consenting user — single-user impersonation"
+    },
+    {
+      "scope": "Mail.ReadBasic",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read mail metadata (subject, sender) across all mailboxes"
+    },
+    {
+      "scope": "Mail.ReadBasic",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read mail metadata for consenting user only"
+    },
+    {
+      "scope": "Files.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read/write all files in all site collections and OneDrive — full tenant file control"
+    },
+    {
+      "scope": "Files.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read/write all files the user can access"
+    },
+    {
+      "scope": "Files.Read.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read all files in tenant — complete file exfiltration"
+    },
+    {
+      "scope": "Files.Read.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read all files user can access — user-scoped exfiltration"
+    },
+    {
+      "scope": "Files.ReadWrite",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read/write files user can access (same effective scope as Files.ReadWrite.All delegated in practice)"
+    },
+    {
+      "scope": "Files.Read",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read files user can access"
+    },
+    {
+      "scope": "Directory.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: full directory write — create/modify/delete users, groups, roles"
+    },
+    {
+      "scope": "Directory.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 1,
+      "rationale": "Delegated: directory write with user context — still tenant-wide identity modification"
+    },
+    {
+      "scope": "Directory.Read.All",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read entire directory — full tenant enumeration"
+    },
+    {
+      "scope": "Directory.Read.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read directory — tenant structure and user enumeration"
+    },
+    {
+      "scope": "User.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: modify all user profiles — identity manipulation at scale"
+    },
+    {
+      "scope": "User.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 1,
+      "rationale": "Delegated: modify all users — tenant-wide identity write"
+    },
+    {
+      "scope": "User.Read.All",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read all user profiles — full tenant user enumeration"
+    },
+    {
+      "scope": "User.Read.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read all users — directory enumeration"
+    },
+    {
+      "scope": "User.Read",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Read only the signed-in user's profile — basic identity"
+    },
+    {
+      "scope": "User.ReadBasic.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Read basic profiles of all users (name, photo, email) — limited enumeration"
+    },
+    {
+      "scope": "Group.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: manage all groups — access control modification at tenant scale"
+    },
+    {
+      "scope": "Group.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: manage groups user is member of — bounded by user context"
+    },
+    {
+      "scope": "Group.Read.All",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read all groups and membership — access structure enumeration"
+    },
+    {
+      "scope": "Group.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read groups — user's group context"
+    },
+    {
+      "scope": "GroupMember.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read group memberships — org structure visibility"
+    },
+    {
+      "scope": "Sites.FullControl.All",
+      "permission_type": "delegated",
+      "tier": 1,
+      "rationale": "Full control of all SharePoint sites — tenant-wide content write even in delegated context"
+    },
+    {
+      "scope": "Sites.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read/write all SharePoint sites — full content control"
+    },
+    {
+      "scope": "Sites.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read/write SharePoint sites user can access"
+    },
+    {
+      "scope": "Sites.Read.All",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read all SharePoint content — site-level exfiltration"
+    },
+    {
+      "scope": "Sites.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read SharePoint sites user can access"
+    },
+    {
+      "scope": "Calendars.ReadWrite",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read/write all calendars in tenant"
+    },
+    {
+      "scope": "Calendars.ReadWrite",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read/write consenting user's calendar"
+    },
+    {
+      "scope": "Calendars.Read",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read all calendars — meeting intelligence at tenant scale"
+    },
+    {
+      "scope": "Calendars.Read",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read user's calendar — schedule visibility"
+    },
+    {
+      "scope": "Contacts.ReadWrite",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read/write all contacts in tenant — PII at scale"
+    },
+    {
+      "scope": "Contacts.ReadWrite",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read/write user's contacts"
+    },
+    {
+      "scope": "EWS.AccessAsUser.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Full Exchange Web Services access as user — legacy full-mailbox scope"
+    },
+    {
+      "scope": "DelegatedPermissionGrant.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 1,
+      "rationale": "Can grant delegated permissions to other apps — consent-chaining enabler"
+    },
+    {
+      "scope": "DelegatedPermissionGrant.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: grant permissions without user context — privilege escalation"
+    },
+    {
+      "scope": "AppRoleAssignment.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: assign app roles — can grant itself or others any permission"
+    },
+    {
+      "scope": "Application.ReadWrite.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: manage all applications — create/modify app registrations and service principals"
+    },
+    {
+      "scope": "RoleManagement.ReadWrite.Directory",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: manage directory roles — can assign Global Admin"
+    },
+    {
+      "scope": "Organization.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read organization info — tenant metadata"
+    },
+    {
+      "scope": "Member.Read.Hidden",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read hidden group memberships — reveals concealed access structures"
+    },
+    {
+      "scope": "People.Read",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read user's relevant people — social graph from user perspective"
+    },
+    {
+      "scope": "People.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read all users' relevant people — broader social graph"
+    },
+    {
+      "scope": "Presence.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read presence status of all users — activity surveillance"
+    },
+    {
+      "scope": "Channel.Create",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: create Teams channels — structural change to collaboration"
+    },
+    {
+      "scope": "Channel.ReadBasic.All",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read basic channel info — team structure visibility"
+    },
+    {
+      "scope": "Team.ReadBasic.All",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read basic team info — team enumeration"
+    },
+    {
+      "scope": "ChatMember.Read",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read chat members — reveals private communication participants"
+    },
+    {
+      "scope": "Chat.ReadWrite",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read/write all chats — full communication interception at tenant scale"
+    },
+    {
+      "scope": "Chat.Read.All",
+      "permission_type": "application",
+      "tier": 1,
+      "rationale": "Application-type: read all chats — full communication surveillance"
+    },
+    {
+      "scope": "ChannelMessage.Read.All",
+      "permission_type": "application",
+      "tier": 2,
+      "rationale": "Application-type: read all channel messages — Teams content exfiltration"
+    },
+    {
+      "scope": "TeamsAppInstallation.ReadWriteForTeam",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: install/remove Teams apps — can introduce malicious apps to team"
+    },
+    {
+      "scope": "TeamsAppInstallation.ReadWriteSelfForTeam",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: manage own app installation in teams — bounded to self"
+    },
+    {
+      "scope": "TeamsTab.Create",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: create tabs in Teams channels — low risk structural change"
+    },
+    {
+      "scope": "Tasks.ReadWrite",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read/write user's tasks — may contain sensitive to-do items"
+    },
+    {
+      "scope": "Forms.ReadWrite",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: manage user's Forms — may contain sensitive survey data"
+    },
+    {
+      "scope": "Report.Read.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read all usage reports — reveals tenant-wide activity patterns"
+    },
+    {
+      "scope": "AppCatalog.Read.All",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read app catalog — low sensitivity metadata"
+    },
+    {
+      "scope": "AppCatalog.Submit",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: submit apps to catalog — can introduce apps to org catalog"
+    },
+    {
+      "scope": "ExternalConnection.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: manage external connections for Microsoft Search — can inject content into search results"
+    },
+    {
+      "scope": "InformationProtectionPolicy.Read",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read sensitivity labels and policies — reveals data classification structure"
+    },
+    {
+      "scope": "SensitivityLabel.Read",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read available sensitivity labels — low sensitivity metadata"
+    },
+    {
+      "scope": "PrintJob.Create",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: submit print jobs — low risk"
+    },
+    {
+      "scope": "PrintJob.ReadBasic",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read basic print job info — low sensitivity"
+    },
+    {
+      "scope": "PrinterShare.ReadBasic.All",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read shared printers — infrastructure enumeration, low sensitivity"
+    },
+    {
+      "scope": "TermStore.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: manage taxonomy term store — can modify org-wide metadata structure"
+    },
+    {
+      "scope": "FileStorageContainer.Selected",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: access selected file storage containers — bounded but file access"
+    },
+    {
+      "scope": "Dataset.Read.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: read Power BI datasets — may contain sensitive business intelligence"
+    },
+    {
+      "scope": "MLModel.Execute.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: execute ML models — access to AI/ML infrastructure"
+    },
+    {
+      "scope": "EduAssignments.ReadBasic",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read basic education assignments — education-sector scope"
+    },
+    {
+      "scope": "EduRoster.ReadBasic",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Delegated: read basic education roster — education-sector scope"
+    },
+    {
+      "scope": "Group-Conversation.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: read/write all group conversations — communication interception"
+    },
+    {
+      "scope": "UserState.ReadWrite.All",
+      "permission_type": "delegated",
+      "tier": 3,
+      "rationale": "Delegated: manage user state data — session and activity state manipulation"
+    },
+    {
+      "scope": "user_impersonation",
+      "permission_type": "delegated",
+      "tier": 2,
+      "rationale": "Delegated: act as the user against the resource — full delegated access to resource API"
+    },
+    {
+      "scope": "openid",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "OpenID Connect sign-in — minimal identity assertion"
+    },
+    {
+      "scope": "profile",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Read user's basic profile — name, picture"
+    },
+    {
+      "scope": "email",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Read user's email address — basic identity claim"
+    },
+    {
+      "scope": "offline_access",
+      "permission_type": "delegated",
+      "tier": 4,
+      "rationale": "Maintain access via refresh token — enables persistent access but not additional scope"
+    }
+  ]
+}
