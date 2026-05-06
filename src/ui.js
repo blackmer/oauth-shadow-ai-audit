@@ -341,6 +341,7 @@ function openDrilldown(tileKey) {
     const container = document.getElementById('drilldown-container');
     if (!container || !state.tiles) return;
 
+    const isNewTile = state.drilldown.tile !== tileKey;
     state.drilldown.tile = tileKey;
     const info = TILE_INFO[tileKey] || { title: 'All Apps', description: '' };
     let apps = [];
@@ -357,7 +358,7 @@ function openDrilldown(tileKey) {
             break;
         case 'grantors':
             apps = state.filteredApps;
-            state.drilldown.sort = 'grantor';
+            if (isNewTile) state.drilldown.sort = 'grantor';
             break;
         case 'chained':
             apps = state.tiles.chained.apps;
