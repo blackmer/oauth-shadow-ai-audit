@@ -24,9 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Print stylesheet for audit-grade PDF output via browser print.
 - Interactive dashboard UI: import panel, IOC banner, controls bar, tile click-through, URL state.
 
+### Changed
+
+- Google `last_used_at` now derived from latest G2 event of any type (authorize, revoke, or activity). Requires wide-date-range G2 export with Activity events. "Unused tokens" tile now covers both platforms.
+- Updated performance documentation: tested with ~21,000 G2 event rows, no perceptible delay.
+
 ### Known Limitations
 
-- Google `last_used_at` not derivable from G2 (consent events only). Under investigation.
 - Google domain-wide delegation not detectable from G1/G2 exports (deferred to v1.x).
 - Microsoft `AllPrincipals` consent grantor identity shows as "Admin consent" (v1.x).
 - M2 user-consent (Principal) path untested against real data (Marc's tenant is admin-consent only).

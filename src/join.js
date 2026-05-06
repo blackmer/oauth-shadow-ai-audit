@@ -79,11 +79,7 @@ export function joinGoogle(g1Data, g2Data) {
             publisher: null,  // Google doesn't provide publisher name directly
             publisher_verified: app.verification_status === 'Verified',
             granted_at: grantedAt,
-            // TBD: Google last_used_at cannot be derived from G2 — G2 contains only
-            // consent events (Authorize/Revoke), not usage activity. Pending decision
-            // on whether a different export filter surfaces activity events.
-            // If not available, render as "Usage data not available for Google apps."
-            last_used_at: null,
+            last_used_at: lastEventDate,
             grantor: grantor,
             grantor_type: 'user',  // Google chained-grant detection deferred to v1.x
             permission_type: null,  // Google doesn't split delegated/application in G1
