@@ -1,5 +1,337 @@
 {
-  "version": "0.1.0",
+  "version": "1.0.0",
   "platform": "google",
-  "scopes": []
+  "tier_definitions": {
+    "1": "Critical — Tenant-wide write to identity, mail, or files; domain-wide delegation",
+    "2": "High — Tenant-wide read OR user-scoped write to sensitive resources (mail, full drive)",
+    "3": "Moderate — User-scoped read to sensitive resources, or write to bounded resources",
+    "4": "Low — Profile, openid, basic identity claims, app-specific data"
+  },
+  "scopes": [
+    {
+      "scope": "https://mail.google.com/",
+      "tier": 1,
+      "rationale": "Full unrestricted access to Gmail including send, delete, and manage — equivalent to full mailbox control"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.modify",
+      "tier": 2,
+      "rationale": "Read, send, delete, and manage labels on user's mail — full write minus settings"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.compose",
+      "tier": 2,
+      "rationale": "Can create and send email as the user — impersonation risk for phishing"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.readonly",
+      "tier": 2,
+      "rationale": "Read all user mail content including attachments — data exfiltration risk"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.send",
+      "tier": 2,
+      "rationale": "Send mail as the user without read access — impersonation vector"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.labels",
+      "tier": 4,
+      "rationale": "Create, read, update, delete labels only — no message content access"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.addons.current.action.compose",
+      "tier": 3,
+      "rationale": "Add-on scoped compose action — bounded to add-on context, not full compose"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.addons.current.message.action",
+      "tier": 3,
+      "rationale": "Add-on action on currently open message — bounded to single message context"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.addons.current.message.metadata",
+      "tier": 4,
+      "rationale": "Add-on read of current message metadata (headers) — no body access"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.addons.current.message.readonly",
+      "tier": 3,
+      "rationale": "Add-on read of current message content — bounded to open message"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.metadata",
+      "tier": 3,
+      "rationale": "Read message metadata (headers, labels) without body content"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/gmail.insert",
+      "tier": 3,
+      "rationale": "Insert mail into mailbox (no send) — can plant messages but not send externally"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive",
+      "tier": 2,
+      "rationale": "Full read/write access to all user Drive files — complete file exfiltration and modification"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.readonly",
+      "tier": 2,
+      "rationale": "Read all user Drive files — complete file exfiltration without modification"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.file",
+      "tier": 3,
+      "rationale": "Access only to files created or opened by the app — bounded scope, not full Drive"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.appdata",
+      "tier": 4,
+      "rationale": "Access only to app-specific hidden folder in Drive — no user file access"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.photos.readonly",
+      "tier": 3,
+      "rationale": "Read access to photos in Google Drive — sensitive personal content"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.metadata.readonly",
+      "tier": 3,
+      "rationale": "View file metadata (names, sharing) but not content — reveals file inventory"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.metadata",
+      "tier": 3,
+      "rationale": "View and modify file metadata — can alter sharing, names, properties"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/drive.activity",
+      "tier": 3,
+      "rationale": "View activity records for Drive files — reveals access patterns"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/documents",
+      "tier": 2,
+      "rationale": "Full read/write to all Google Docs — document content exposure and modification"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/documents.readonly",
+      "tier": 3,
+      "rationale": "Read all Google Docs content — document exfiltration"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/spreadsheets",
+      "tier": 2,
+      "rationale": "Full read/write to all Google Sheets — spreadsheets often contain sensitive data"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/spreadsheets.readonly",
+      "tier": 3,
+      "rationale": "Read all Google Sheets — data exfiltration from spreadsheets"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/presentations",
+      "tier": 3,
+      "rationale": "Full read/write to Google Slides — less sensitive than docs/sheets typically"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/presentations.readonly",
+      "tier": 3,
+      "rationale": "Read all Google Slides — content exposure"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/calendar",
+      "tier": 3,
+      "rationale": "Full read/write to calendar — can view meetings, add events, modify schedule"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/calendar.readonly",
+      "tier": 3,
+      "rationale": "Read calendar events — reveals meeting schedules, attendees, locations"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/calendar.events.readonly",
+      "tier": 3,
+      "rationale": "Read calendar events (same as calendar.readonly for practical purposes)"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/calendar.events",
+      "tier": 3,
+      "rationale": "Create, modify, delete calendar events — schedule manipulation"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/contacts",
+      "tier": 3,
+      "rationale": "Full read/write to contacts — PII exposure and social graph mapping"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/contacts.readonly",
+      "tier": 3,
+      "rationale": "Read contacts — PII and social graph exposure"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/contacts.other.readonly",
+      "tier": 4,
+      "rationale": "Read 'other contacts' (auto-saved) — lower sensitivity than managed contacts"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/directory.readonly",
+      "tier": 3,
+      "rationale": "Read Google Workspace directory — org chart and employee enumeration"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/admin.directory.user.readonly",
+      "tier": 2,
+      "rationale": "Read all users in the domain directory — full tenant user enumeration"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/admin.directory.user",
+      "tier": 1,
+      "rationale": "Full user management — create, modify, delete users in the tenant"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/admin.directory.group",
+      "tier": 1,
+      "rationale": "Full group management — modify group membership controls access to resources"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/admin.directory.group.readonly",
+      "tier": 2,
+      "rationale": "Read all groups and membership — reveals access control structure"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/admin.directory.orgunit",
+      "tier": 1,
+      "rationale": "Manage organizational units — structural control over tenant"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/admin.directory.domain",
+      "tier": 1,
+      "rationale": "Manage domains — tenant-wide identity control"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/cloud-platform",
+      "tier": 1,
+      "rationale": "Full access to all GCP resources — infrastructure-level control"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/cloud-platform.read-only",
+      "tier": 2,
+      "rationale": "Read all GCP resources — infrastructure enumeration"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/youtube.readonly",
+      "tier": 4,
+      "rationale": "Read YouTube account data — low sensitivity"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/youtube.upload",
+      "tier": 3,
+      "rationale": "Upload videos to YouTube — reputational risk if misused"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/youtube",
+      "tier": 3,
+      "rationale": "Full YouTube account management — channel modification"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/userinfo.email",
+      "tier": 4,
+      "rationale": "Read user email address — basic identity claim"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/userinfo.profile",
+      "tier": 4,
+      "rationale": "Read user profile info (name, picture) — basic identity claim"
+    },
+    {
+      "scope": "openid",
+      "tier": 4,
+      "rationale": "OpenID Connect authentication — minimal identity assertion"
+    },
+    {
+      "scope": "email",
+      "tier": 4,
+      "rationale": "OpenID Connect email claim — equivalent to userinfo.email"
+    },
+    {
+      "scope": "profile",
+      "tier": 4,
+      "rationale": "OpenID Connect profile claim — equivalent to userinfo.profile"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/tasks",
+      "tier": 3,
+      "rationale": "Full access to Google Tasks — may contain sensitive to-do items"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/tasks.readonly",
+      "tier": 4,
+      "rationale": "Read Google Tasks — low sensitivity"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/chat.messages",
+      "tier": 2,
+      "rationale": "Read and write Google Chat messages — communication interception and impersonation"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/chat.messages.readonly",
+      "tier": 2,
+      "rationale": "Read all Google Chat messages — communication surveillance"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/chat.spaces",
+      "tier": 3,
+      "rationale": "Manage Chat spaces — structural access to communication channels"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/apps.groups.settings",
+      "tier": 2,
+      "rationale": "Manage Google Groups settings — can alter access controls on group resources"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/keep",
+      "tier": 3,
+      "rationale": "Full access to Google Keep notes — may contain sensitive information"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/keep.readonly",
+      "tier": 3,
+      "rationale": "Read Google Keep notes — content exposure"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/forms.body",
+      "tier": 3,
+      "rationale": "Read and write Google Forms — may contain survey data or internal processes"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/forms.body.readonly",
+      "tier": 4,
+      "rationale": "Read Google Forms structure — low sensitivity without response data"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/forms.responses.readonly",
+      "tier": 3,
+      "rationale": "Read form responses — may contain PII or sensitive survey answers"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/script.external_request",
+      "tier": 2,
+      "rationale": "Apps Script can make external network requests — data exfiltration channel"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/script.scriptapp",
+      "tier": 2,
+      "rationale": "Manage Apps Script projects — code execution within tenant context"
+    },
+    {
+      "scope": "https://www.google.com/accounts/OAuthLogin",
+      "tier": 3,
+      "rationale": "Chrome sync and account login scope — browser session access"
+    },
+    {
+      "scope": "https://www.googleapis.com/auth/flexible-api",
+      "tier": 4,
+      "rationale": "Google Drive for desktop sync scope — bounded to desktop client operation"
+    }
+  ]
 }
