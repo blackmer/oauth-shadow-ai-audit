@@ -75,7 +75,7 @@ export function tileStaleGrants(apps, options = {}) {
  * Apps without last_used_at data are placed in a separate "no telemetry" bucket
  * and NOT folded into the count.
  *
- * Google side: last_used_at is currently unavailable (G2 has consent events only).
+ * Google side: last_used_at derived from latest G2 event (requires Activity events in export).
  * Microsoft side: requires Entra ID P1 (M4 file).
  *
  * @param {Array} apps - Filtered app list

@@ -148,10 +148,10 @@ See `iocs/iocs.example.json` for the expected schema. Match is on `client_id` on
 
 - **File-based ingestion only** — findings are point-in-time snapshots, not real-time.
 - **Google audit log retention is ~6 months.** Apps granted before that window lack timestamp data.
-- **Google usage activity data** is not currently available from the G2 export. The "unused tokens" tile covers Microsoft only.
+- **Google `last_used_at`** is derived from the latest G2 event of any type. Requires a wide-date-range G2 export that includes Activity events (not just consent events). Migration spikes (e.g., M365→Workspace) will inflate last-used dates — this is intentional.
 - **Google domain-wide delegation (DWD)** is not detectable from G1/G2 exports. DWD is a service account property surfaced under a separate admin console page.
 - **Microsoft `AllPrincipals` consent** shows as "Admin consent" rather than identifying the specific admin.
-- **Performance target** is tenants with up to 500 apps.
+- **Performance:** Tested with ~21,000 G2 event rows with no perceptible delay. The PRD's 500-app target is conservative.
 
 ## Security
 
