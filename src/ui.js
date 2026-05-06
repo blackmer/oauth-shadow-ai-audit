@@ -1,11 +1,23 @@
 /**
  * ui.js — Top-level orchestration for file import and dashboard rendering.
  *
- * Wires up the import panel, dispatches files to parsers, and stores
- * normalized results in the session state (memory only, no persistence).
+ * Wires up the import panel, dispatches files to parsers, runs the full
+ * pipeline (join → classify → IOC match → filter → tile computation),
+ * and renders the dashboard view.
+ *
+ * Security: All processing is client-side. No data leaves the browser.
+ * No persistence — state lives in memory only, gone on reload.
  */
 
 import { parseFile, mergeM3Results, detectFileType } from './ingest.js';
+import { joinGoogle, joinMicrosoft } from './join.js';
+import { buildTaxonomyIndex, classifyAllApps } from './taxonomy.js';
+import { parseIOCList, buildIOCIndex, matchIOCs, fetchIOCList } from './ioc.js';
+import { filterApps } from './filter.js';
+import { computeAllTiles } from './tiles.js';
+import { COLUMNS, sortApps, renderDrilldown, encodeStateToURL, decodeStateFromURL } from './drilldown.js';
+import { exportDrilldown, downloadFile } from './export.js';
+import { logImport, logIOCMatch, logUnknownScope, logConfigLoad, exportLog, getLogEntries } from './log.js';
 
 // ============================================================================
 // Session state — lives in memory only, gone on reload
@@ -13,22 +25,367 @@ import { parseFile, mergeM3Results, detectFileType } from './ingest.js';
 
 const state = {
     raw: {
-        G1: null,  // parseG1 result
-        G2: null,  // parseG2 result
-        M1: null,  // parseM1 result
-        M2: null,  // parseM2 result
-        M3: [],    // array of parseM3 results (pagination support)
-        M4: null,  // parseM4 result
+        G1: null,
+        G2: null,
+        M1: null,
+        M2: null,
+        M3: [],
+        M4: null,
     },
-    // Merged M3 data (after pagination assembly)
     m3Merged: null,
+    iocList: null,
+    taxonomy: { google: null, microsoft: null },
+    // Computed state
+    allApps: [],
+    filteredApps: [],
+    tiles: null,
+    orphanSignIns: [],
+    classificationResult: null,
+    // UI state
+    filters: {
+        showFirstParty: false,
+        platform: null,
+        search: null,
+    },
+    drilldown: {
+        tile: null,
+        sort: 'highest_tier',
+        dir: 'asc',
+        apps: [],
+    },
 };
 
-// Expose state for console debugging during development
 window.__auditState = state;
 
 // ============================================================================
-// File reading helper
+// Taxonomy loading
+// ============================================================================
+
+async function loadTaxonomies() {
+    try {
+        const [gRes, mRes] = await Promise.all([
+            fetch('taxonomy/taxonomy-google.json'),
+            fetch('taxonomy/taxonomy-microsoft.json'),
+        ]);
+        if (gRes.ok) {
+            const gJson = await gRes.json();
+            state.taxonomy.google = buildTaxonomyIndex(gJson);
+            logConfigLoad('taxonomy', 'taxonomy-google.json');
+        }
+        if (mRes.ok) {
+            const mJson = await mRes.json();
+            state.taxonomy.microsoft = buildTaxonomyIndex(mJson);
+            logConfigLoad('taxonomy', 'taxonomy-microsoft.json');
+        }
+        console.log('[Taxonomy] Loaded —',
+            `Google: ${state.taxonomy.google?.index.size || 0} entries,`,
+            `Microsoft: ${state.taxonomy.microsoft?.index.size || 0} entries`);
+    } catch (e) {
+        console.error('[Taxonomy] Load failed:', e);
+    }
+}
+
+// ============================================================================
+// Pipeline: join → classify → IOC → filter → tiles
+// ============================================================================
+
+function runPipeline() {
+    // Join
+    const g1Data = state.raw.G1?.data || null;
+    const g2Data = state.raw.G2?.data || null;
+    const m1Data = state.raw.M1?.data || null;
+    const m2Data = state.raw.M2?.data || null;
+    const m3Data = state.m3Merged?.data || null;
+    const m4Data = state.raw.M4?.data || null;
+
+    const hasGoogle = g1Data && g1Data.length > 0;
+    const hasMicrosoft = m1Data || m3Data;
+
+    if (!hasGoogle && !hasMicrosoft) {
+        state.allApps = [];
+        state.filteredApps = [];
+        state.tiles = null;
+        renderDashboard();
+        return;
+    }
+
+    let googleApps = [];
+    let msApps = [];
+    state.orphanSignIns = [];
+
+    if (hasGoogle) {
+        const gResult = joinGoogle(g1Data, g2Data);
+        googleApps = gResult.apps;
+        if (gResult.warnings.length > 0) {
+            console.warn('[Google Join]', gResult.warnings);
+        }
+    }
+
+    if (hasMicrosoft) {
+        const msResult = joinMicrosoft(m1Data, m2Data, m3Data, m4Data);
+        msApps = msResult.apps;
+        state.orphanSignIns = msResult.orphanSignIns;
+        if (msResult.warnings.length > 0) {
+            console.warn('[Microsoft Join]', msResult.warnings);
+        }
+    }
+
+    state.allApps = [...googleApps, ...msApps];
+
+    // Classify
+    if (state.taxonomy.google || state.taxonomy.microsoft) {
+        state.classificationResult = classifyAllApps(
+            state.allApps, state.taxonomy.google, state.taxonomy.microsoft
+        );
+        // Log unclassified scopes
+        for (const u of state.classificationResult.unclassified_scopes) {
+            logUnknownScope(u.scope, u.app_name, u.platform);
+        }
+    }
+
+    // IOC matching
+    if (state.iocList && state.iocList.length > 0) {
+        const iocIndex = buildIOCIndex(state.iocList);
+        const iocResult = matchIOCs(state.allApps, iocIndex);
+        for (const match of iocResult.matched_apps) {
+            for (const ioc of match.iocs) {
+                logIOCMatch(match.app.name, match.app.id, ioc.severity, ioc.source);
+            }
+        }
+    }
+
+    // Filter
+    state.filteredApps = filterApps(state.allApps, state.filters);
+
+    // Tiles
+    state.tiles = computeAllTiles(state.filteredApps);
+
+    renderDashboard();
+}
+
+// ============================================================================
+// Dashboard rendering
+// ============================================================================
+
+function renderDashboard() {
+    const dashboard = document.getElementById('dashboard');
+    const importPanel = document.getElementById('import-panel');
+
+    if (state.allApps.length === 0) {
+        dashboard.classList.add('hidden');
+        importPanel.classList.remove('hidden');
+        return;
+    }
+
+    importPanel.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    dashboard.innerHTML = '';
+
+    // IOC banner
+    if (state.tiles && state.tiles.ioc.count > 0) {
+        const banner = document.createElement('div');
+        banner.className = 'ioc-banner';
+        banner.innerHTML = `<strong>IOC Alert:</strong> ${state.tiles.ioc.count} app(s) matched known indicators of compromise.
+            <button class="banner-action" data-tile="ioc">View matches</button>
+            <button class="banner-dismiss" aria-label="Dismiss">×</button>`;
+        banner.querySelector('.banner-action').addEventListener('click', () => openDrilldown('ioc'));
+        banner.querySelector('.banner-dismiss').addEventListener('click', () => banner.remove());
+        dashboard.appendChild(banner);
+    }
+
+    // Controls bar
+    const controls = document.createElement('div');
+    controls.className = 'controls-bar';
+    controls.innerHTML = `
+        <label class="filter-toggle">
+            <input type="checkbox" id="show-first-party" ${state.filters.showFirstParty ? 'checked' : ''}>
+            Show first-party services
+        </label>
+        <input type="text" id="search-input" placeholder="Search apps, scopes..." value="${state.filters.search || ''}">
+        <button id="btn-export-log" title="Download CEF security log">Download Log</button>
+        <button id="btn-show-import" title="Show import panel">Import</button>
+    `;
+    dashboard.appendChild(controls);
+
+    // Wire controls
+    controls.querySelector('#show-first-party').addEventListener('change', (e) => {
+        state.filters.showFirstParty = e.target.checked;
+        runPipeline();
+    });
+    controls.querySelector('#search-input').addEventListener('input', debounce((e) => {
+        state.filters.search = e.target.value || null;
+        runPipeline();
+    }, 200));
+    controls.querySelector('#btn-export-log').addEventListener('click', () => {
+        const log = exportLog();
+        downloadFile(log, `oauth-audit-log-${new Date().toISOString().slice(0, 10)}.cef`, 'text/plain');
+    });
+    controls.querySelector('#btn-show-import').addEventListener('click', () => {
+        document.getElementById('import-panel').classList.remove('hidden');
+        dashboard.classList.add('hidden');
+    });
+
+    // Tiles grid
+    if (state.tiles) {
+        const grid = document.createElement('div');
+        grid.className = 'tiles-grid';
+        grid.appendChild(createTile('critical', 'Tier 1 (Critical) Access', state.tiles.critical.count, 'critical'));
+        grid.appendChild(createTile('stale', 'Granted >90 Days', state.tiles.stale.count, 'warning'));
+        grid.appendChild(createUnusedTile());
+        grid.appendChild(createGrantorTile());
+        grid.appendChild(createTile('chained', 'Chained Grants', state.tiles.chained.count, 'warning'));
+        grid.appendChild(createIOCTile());
+        dashboard.appendChild(grid);
+    }
+
+    // Drilldown container
+    const drilldownEl = document.createElement('div');
+    drilldownEl.id = 'drilldown-container';
+    dashboard.appendChild(drilldownEl);
+
+    // Restore drilldown from URL state
+    const urlState = decodeStateFromURL();
+    if (urlState.tile) {
+        state.drilldown.tile = urlState.tile;
+        state.drilldown.sort = urlState.sort || 'highest_tier';
+        state.drilldown.dir = urlState.dir || 'asc';
+        openDrilldown(urlState.tile);
+    }
+}
+
+function createTile(tileKey, label, count, severity) {
+    const tile = document.createElement('div');
+    tile.className = `tile tile-${severity}`;
+    tile.innerHTML = `<div class="tile-count">${count}</div><div class="tile-label">${label}</div>`;
+    tile.addEventListener('click', () => openDrilldown(tileKey));
+    return tile;
+}
+
+function createUnusedTile() {
+    const t = state.tiles.unused;
+    const tile = document.createElement('div');
+
+    if (Object.keys(t.platform_unavailable).length > 0 && t.count === 0) {
+        tile.className = 'tile tile-disabled';
+        const msgs = Object.values(t.platform_unavailable);
+        tile.innerHTML = `<div class="tile-count">—</div><div class="tile-label">Unused Tokens</div>
+            <div class="tile-note">${msgs[0]}</div>`;
+    } else {
+        tile.className = 'tile tile-warning';
+        tile.innerHTML = `<div class="tile-count">${t.count}</div><div class="tile-label">Unused >30 Days</div>`;
+        tile.addEventListener('click', () => openDrilldown('unused'));
+    }
+    return tile;
+}
+
+function createGrantorTile() {
+    const t = state.tiles.grantors;
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.innerHTML = `<div class="tile-count">${t.total_grantors}</div><div class="tile-label">Distinct Grantors</div>`;
+    tile.addEventListener('click', () => openDrilldown('grantors'));
+    return tile;
+}
+
+function createIOCTile() {
+    const t = state.tiles.ioc;
+    const tile = document.createElement('div');
+    if (t.no_ioc_list) {
+        tile.className = 'tile tile-disabled';
+        tile.innerHTML = `<div class="tile-count">—</div><div class="tile-label">IOC Matches</div>
+            <div class="tile-note">No IOC list loaded</div>`;
+    } else {
+        tile.className = t.count > 0 ? 'tile tile-critical' : 'tile tile-ok';
+        tile.innerHTML = `<div class="tile-count">${t.count}</div><div class="tile-label">IOC Matches</div>`;
+        if (t.count > 0) tile.addEventListener('click', () => openDrilldown('ioc'));
+    }
+    return tile;
+}
+
+// ============================================================================
+// Drilldown interaction
+// ============================================================================
+
+function openDrilldown(tileKey) {
+    const container = document.getElementById('drilldown-container');
+    if (!container || !state.tiles) return;
+
+    state.drilldown.tile = tileKey;
+    let apps = [];
+    let title = '';
+
+    switch (tileKey) {
+        case 'critical':
+            apps = state.tiles.critical.apps;
+            title = 'Apps with Tier 1 (Critical) Access';
+            break;
+        case 'stale':
+            apps = state.tiles.stale.apps;
+            title = 'Apps Granted >90 Days Ago';
+            break;
+        case 'unused':
+            apps = state.tiles.unused.apps;
+            title = 'Apps Unused >30 Days';
+            break;
+        case 'grantors':
+            apps = state.filteredApps;
+            title = 'All Apps by Grantor';
+            state.drilldown.sort = 'grantor';
+            break;
+        case 'chained':
+            apps = state.tiles.chained.apps;
+            title = 'Chained Grants (App-to-App)';
+            break;
+        case 'ioc':
+            apps = state.tiles.ioc.apps;
+            title = 'IOC Matches';
+            break;
+        default:
+            apps = state.filteredApps;
+            title = 'All Apps';
+    }
+
+    // Sort
+    apps = sortApps(apps, state.drilldown.sort, state.drilldown.dir);
+    state.drilldown.apps = apps;
+
+    // Render
+    renderDrilldown(container, apps, {
+        title,
+        sortColumn: state.drilldown.sort,
+        sortDirection: state.drilldown.dir,
+        onSort: (colKey) => {
+            if (state.drilldown.sort === colKey) {
+                state.drilldown.dir = state.drilldown.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.drilldown.sort = colKey;
+                state.drilldown.dir = 'asc';
+            }
+            openDrilldown(tileKey);
+        },
+    });
+
+    // Export button
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'btn-export';
+    exportBtn.textContent = 'Export to CSV';
+    exportBtn.addEventListener('click', () => {
+        const version = state.taxonomy.google?.version || state.taxonomy.microsoft?.version || '';
+        exportDrilldown(apps, tileKey, version);
+    });
+    container.appendChild(exportBtn);
+
+    // Update URL
+    encodeStateToURL({
+        tile: tileKey,
+        sort: state.drilldown.sort,
+        dir: state.drilldown.dir,
+        search: state.filters.search,
+    });
+}
+
+// ============================================================================
+// File import handling
 // ============================================================================
 
 function readFileAsText(file) {
@@ -39,10 +396,6 @@ function readFileAsText(file) {
         reader.readAsText(file);
     });
 }
-
-// ============================================================================
-// Import panel logic
-// ============================================================================
 
 function updateSlotStatus(slotEl, result) {
     const statusEl = slotEl.querySelector('.slot-status');
@@ -57,8 +410,6 @@ function updateSlotStatus(slotEl, result) {
         statusEl.textContent = msg;
         statusEl.className = 'slot-status status-ok';
     }
-
-    // Log warnings to console for developer diagnosis
     if (result.warnings.length > 0) {
         console.warn(`[${result.slot || 'unknown'}] Warnings:`, result.warnings);
     }
@@ -84,7 +435,18 @@ function updateImportSummary() {
     }
 
     summaryEl.classList.remove('hidden');
-    resultsEl.textContent = `Files loaded: ${loaded.join(', ')}`;
+    resultsEl.innerHTML = `Files loaded: ${loaded.join(', ')}
+        <button id="btn-run-analysis" class="btn-primary">Run Analysis</button>`;
+    document.getElementById('btn-run-analysis').addEventListener('click', () => {
+        // Log imports
+        if (state.raw.G1) logImport('google', 'G1', state.raw.G1.data.length, state.taxonomy.google?.version || '');
+        if (state.raw.G2) logImport('google', 'G2', state.raw.G2.data.length, '');
+        if (state.raw.M1) logImport('microsoft', 'M1', state.raw.M1.data.length, '');
+        if (state.raw.M2) logImport('microsoft', 'M2', state.raw.M2.data.length, '');
+        if (state.m3Merged) logImport('microsoft', 'M3', state.m3Merged.data.length, state.taxonomy.microsoft?.version || '');
+        if (state.raw.M4) logImport('microsoft', 'M4', state.raw.M4.data.length, '');
+        runPipeline();
+    });
 }
 
 async function handleFileInput(event) {
@@ -99,7 +461,6 @@ async function handleFileInput(event) {
         try {
             const text = await readFileAsText(file);
 
-            // Auto-detect if slot assignment seems wrong
             const detected = detectFileType(text, file.name);
             if (detected && detected !== slot) {
                 console.warn(`File "${file.name}" looks like ${detected} but was placed in ${slot} slot`);
@@ -108,7 +469,6 @@ async function handleFileInput(event) {
             const result = parseFile(text, slot);
 
             if (slot === 'M3') {
-                // M3 supports multiple files for pagination
                 state.raw.M3.push(result);
                 state.m3Merged = mergeM3Results(state.raw.M3);
                 updateSlotStatus(slotEl, state.m3Merged);
@@ -128,15 +488,57 @@ async function handleFileInput(event) {
 }
 
 // ============================================================================
+// IOC file handling
+// ============================================================================
+
+async function handleIOCFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const text = await readFileAsText(file);
+    const result = parseIOCList(text);
+    const statusEl = document.getElementById('ioc-status');
+
+    if (result.error) {
+        statusEl.textContent = `Error: ${result.error}`;
+        statusEl.className = 'slot-status status-error';
+    } else {
+        state.iocList = result.iocs;
+        statusEl.textContent = `Loaded ${result.iocs.length} IOC(s)`;
+        statusEl.className = 'slot-status status-ok';
+        logConfigLoad('ioc', file.name);
+    }
+}
+
+// ============================================================================
+// Utilities
+// ============================================================================
+
+function debounce(fn, ms) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), ms);
+    };
+}
+
+// ============================================================================
 // Initialization
 // ============================================================================
 
-function init() {
-    // Wire up file inputs
+async function init() {
+    // Load taxonomies
+    await loadTaxonomies();
+
+    // Wire file inputs
     const inputs = document.querySelectorAll('.import-slot input[type="file"]');
     for (const input of inputs) {
         input.addEventListener('change', handleFileInput);
     }
+
+    // Wire IOC input
+    const iocInput = document.getElementById('ioc-file-input');
+    if (iocInput) iocInput.addEventListener('change', handleIOCFile);
 
     console.log('[OAuth Audit Dashboard] Initialized. State available at window.__auditState');
 }
