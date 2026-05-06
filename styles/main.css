@@ -70,6 +70,123 @@ header .version { color: var(--color-text-muted); font-size: 0.85rem; }
 .status-ok { color: var(--color-success); }
 .status-error { color: var(--color-error); }
 
+/* Onboarding sections */
+
+.onboarding-section {
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.onboarding-platform {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.onboarding-intro {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+}
+
+.export-instructions {
+    margin-bottom: 1rem;
+}
+
+.export-instructions summary {
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0.4rem 0;
+    color: var(--color-accent);
+}
+
+.instructions-body {
+    padding: 0.5rem 0;
+}
+
+.instruction-step {
+    margin-bottom: 1rem;
+}
+
+.instruction-step h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+}
+
+.instruction-step ol {
+    padding-left: 1.5rem;
+    font-size: 0.8rem;
+    line-height: 1.8;
+}
+
+.instruction-provides {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+    font-style: italic;
+}
+
+.feature-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.feature-matrix th {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    padding: 0.4rem 0.6rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.feature-matrix td {
+    border: 1px solid var(--color-border);
+    padding: 0.35rem 0.6rem;
+}
+
+.query-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin: 0.75rem 0;
+}
+
+.query-table th {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+.query-table td {
+    border: 1px solid var(--color-border);
+    padding: 0.35rem 0.5rem;
+    vertical-align: top;
+}
+
+.query-table code {
+    font-size: 0.7rem;
+    word-break: break-all;
+}
+
+.security-notice {
+    font-size: 0.8rem;
+    padding: 0.75rem 1rem;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+}
+
 #import-summary {
     margin-top: 1.5rem;
     padding: 1rem;

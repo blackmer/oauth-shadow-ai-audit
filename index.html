@@ -17,59 +17,185 @@
         <!-- Import panel renders here when no data is loaded -->
         <section id="import-panel">
             <h2>Import Data Files</h2>
-            <p>Upload exports from your Google Workspace admin console and Microsoft Entra ID / Graph Explorer.</p>
+            <p>This dashboard audits OAuth application access in your Google Workspace and Microsoft 365 tenants. All processing happens in your browser — no data is transmitted anywhere.</p>
+            <p>Export the files below from your admin consoles, then upload them here. You can load files from one or both platforms. The dashboard degrades gracefully when files are missing — see the feature matrix below each section.</p>
 
-            <div class="import-grid">
-                <div class="import-slot" data-slot="G1">
-                    <h3>G1 — Google Accessed Apps (CSV)</h3>
-                    <p class="slot-source">Admin Console → Security → API controls → Accessed apps → Download</p>
-                    <input type="file" accept=".csv" data-slot="G1">
-                    <div class="slot-status"></div>
-                </div>
+            <!-- Google Workspace -->
+            <div class="onboarding-section">
+                <h3 class="onboarding-platform">Google Workspace</h3>
+                <p class="onboarding-intro">Two files from the Google Admin Console. Requires Super Admin access.</p>
 
-                <div class="import-slot" data-slot="G2">
-                    <h3>G2 — Google OAuth Log (CSV)</h3>
-                    <p class="slot-source">Admin Console → Reporting → OAuth log events → Download</p>
-                    <input type="file" accept=".csv" data-slot="G2">
-                    <div class="slot-status"></div>
-                </div>
+                <details class="export-instructions" open>
+                    <summary>Export instructions</summary>
+                    <div class="instructions-body">
+                        <div class="instruction-step">
+                            <h4>G1 — Accessed Apps (required for Google audit)</h4>
+                            <ol>
+                                <li>Sign in to <strong>admin.google.com</strong> as a Super Admin.</li>
+                                <li>Navigate to <strong>Security</strong> &rarr; <strong>Access and data control</strong> &rarr; <strong>API controls</strong> &rarr; <strong>App access control</strong>.</li>
+                                <li>Click <strong>MANAGE APP ACCESS</strong>, then select the <strong>Accessed apps</strong> tab.</li>
+                                <li>Click <strong>Download</strong> (CSV icon). Save the file.</li>
+                            </ol>
+                            <p class="instruction-provides">Provides: app inventory, scopes by service, verification status, ownership classification.</p>
+                        </div>
+                        <div class="instruction-step">
+                            <h4>G2 — OAuth Audit Log (recommended)</h4>
+                            <ol>
+                                <li>In the Admin Console, navigate to <strong>Reporting</strong> &rarr; <strong>Audit and investigation</strong> &rarr; <strong>OAuth log events</strong>.</li>
+                                <li>Set date range as wide as available (Google retains ~6 months).</li>
+                                <li>Click <strong>Download</strong>. Save the file.</li>
+                            </ol>
+                            <p class="instruction-provides">Provides: grant/revoke timeline, grantor identity, last consent event dates.</p>
+                        </div>
+                    </div>
+                </details>
 
-                <div class="import-slot" data-slot="M1">
-                    <h3>M1 — Microsoft Service Principals (CSV)</h3>
-                    <p class="slot-source">Entra → Enterprise Applications → All Applications → Download</p>
-                    <input type="file" accept=".csv" data-slot="M1">
-                    <div class="slot-status"></div>
-                </div>
+                <table class="feature-matrix">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>G1 only</th>
+                            <th>G1 + G2</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>App inventory with scopes</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Scope risk tier classification</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>IOC matching</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Granted-by (grantor identity)</td><td>No</td><td>Yes</td></tr>
+                        <tr><td>Grant date / days since granted</td><td>No</td><td>Yes</td></tr>
+                        <tr><td>Revocation detection</td><td>No</td><td>Yes</td></tr>
+                    </tbody>
+                </table>
 
-                <div class="import-slot" data-slot="M2">
-                    <h3>M2 — Delegated Permissions (JSON)</h3>
-                    <p class="slot-source">Graph Explorer → oauth2PermissionGrants</p>
-                    <input type="file" accept=".json" data-slot="M2">
-                    <div class="slot-status"></div>
-                </div>
-
-                <div class="import-slot" data-slot="M3">
-                    <h3>M3 — Service Principals + App Roles (JSON)</h3>
-                    <p class="slot-source">Graph Explorer → servicePrincipals?$expand=appRoleAssignments</p>
-                    <p class="slot-note">Multiple files accepted for paginated results.</p>
-                    <input type="file" accept=".json" data-slot="M3" multiple>
-                    <div class="slot-status"></div>
-                </div>
-
-                <div class="import-slot" data-slot="M4">
-                    <h3>M4 — Sign-In Activity (JSON)</h3>
-                    <p class="slot-source">Graph Explorer → reports/servicePrincipalSignInActivities</p>
-                    <p class="slot-note">Requires Entra ID P1 license.</p>
-                    <input type="file" accept=".json" data-slot="M4">
-                    <div class="slot-status"></div>
+                <div class="import-grid">
+                    <div class="import-slot" data-slot="G1">
+                        <h3>G1 — Accessed Apps (CSV)</h3>
+                        <input type="file" accept=".csv" data-slot="G1">
+                        <div class="slot-status"></div>
+                    </div>
+                    <div class="import-slot" data-slot="G2">
+                        <h3>G2 — OAuth Audit Log (CSV)</h3>
+                        <input type="file" accept=".csv" data-slot="G2">
+                        <div class="slot-status"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="import-slot import-slot-ioc">
-                <h3>IOC List (Optional)</h3>
-                <p class="slot-source">Your own indicator-of-compromise JSON file. See iocs/iocs.example.json for schema.</p>
-                <input type="file" accept=".json" id="ioc-file-input">
-                <div class="slot-status" id="ioc-status"></div>
+            <!-- Microsoft Entra ID -->
+            <div class="onboarding-section">
+                <h3 class="onboarding-platform">Microsoft Entra ID / Microsoft 365</h3>
+                <p class="onboarding-intro">One CSV from the Entra admin center plus up to three JSON files from Microsoft Graph Explorer. Requires at minimum <strong>Global Reader</strong> or <strong>Application Administrator</strong> role.</p>
+
+                <details class="export-instructions" open>
+                    <summary>Export instructions</summary>
+                    <div class="instructions-body">
+                        <div class="instruction-step">
+                            <h4>M1 — Enterprise Applications CSV</h4>
+                            <ol>
+                                <li>Sign in to <strong>entra.microsoft.com</strong>.</li>
+                                <li>Navigate to <strong>Identity</strong> &rarr; <strong>Applications</strong> &rarr; <strong>Enterprise applications</strong> &rarr; <strong>All applications</strong>.</li>
+                                <li>Click <strong>Download</strong> (export the list as CSV). Save the file.</li>
+                            </ol>
+                            <p class="instruction-provides">Provides: app inventory metadata (names, IDs, creation dates). Does not include scopes or permissions.</p>
+                        </div>
+                        <div class="instruction-step">
+                            <h4>M2, M3, M4 — Graph Explorer JSON files</h4>
+                            <ol>
+                                <li>Open <strong>developer.microsoft.com/en-us/graph/graph-explorer</strong> and sign in with your tenant admin account.</li>
+                                <li>Consent to the required permissions when prompted (see table below).</li>
+                                <li>Run each query, then copy the full JSON response and save it as a <code>.json</code> file.</li>
+                            </ol>
+                            <table class="query-table">
+                                <thead><tr><th>File</th><th>Query URL</th><th>Permission needed</th><th>Notes</th></tr></thead>
+                                <tbody>
+                                    <tr>
+                                        <td>M2</td>
+                                        <td><code>https://graph.microsoft.com/v1.0/oauth2PermissionGrants</code></td>
+                                        <td>DelegatedPermissionGrant.Read.All</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>M3</td>
+                                        <td><code>https://graph.microsoft.com/v1.0/servicePrincipals?$expand=appRoleAssignments&amp;$top=999</code></td>
+                                        <td>Application.Read.All</td>
+                                        <td>If the response contains <code>@odata.nextLink</code>, follow the link and save each page as a separate file. Upload all pages to the M3 slot.</td>
+                                    </tr>
+                                    <tr>
+                                        <td>M4</td>
+                                        <td><code>https://graph.microsoft.com/beta/reports/servicePrincipalSignInActivities</code></td>
+                                        <td>AuditLog.Read.All</td>
+                                        <td>Requires <strong>Entra ID P1</strong> license. If unavailable, skip — the dashboard shows a clear message.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </details>
+
+                <table class="feature-matrix">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>M1 only</th>
+                            <th>M1 + M2 + M3</th>
+                            <th>M1 + M2 + M3 + M4</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>App inventory</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>IOC matching</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Delegated permission scopes</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Application permission roles</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Scope risk tier classification</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>First-party vs third-party filter</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Consent type (admin vs user)</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Chained grant detection</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+                        <tr><td>Last sign-in / unused token detection</td><td>No</td><td>No</td><td>Yes (P1)</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="import-grid">
+                    <div class="import-slot" data-slot="M1">
+                        <h3>M1 — Enterprise Applications (CSV)</h3>
+                        <input type="file" accept=".csv" data-slot="M1">
+                        <div class="slot-status"></div>
+                    </div>
+                    <div class="import-slot" data-slot="M2">
+                        <h3>M2 — Delegated Permissions (JSON)</h3>
+                        <input type="file" accept=".json" data-slot="M2">
+                        <div class="slot-status"></div>
+                    </div>
+                    <div class="import-slot" data-slot="M3">
+                        <h3>M3 — Service Principals + App Roles (JSON)</h3>
+                        <p class="slot-note">Multiple files accepted for paginated results.</p>
+                        <input type="file" accept=".json" data-slot="M3" multiple>
+                        <div class="slot-status"></div>
+                    </div>
+                    <div class="import-slot" data-slot="M4">
+                        <h3>M4 — Sign-In Activity (JSON)</h3>
+                        <p class="slot-note">Requires Entra ID P1 license.</p>
+                        <input type="file" accept=".json" data-slot="M4">
+                        <div class="slot-status"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IOC List -->
+            <div class="onboarding-section">
+                <h3 class="onboarding-platform">Indicator of Compromise List (Optional)</h3>
+                <p class="onboarding-intro">Supply your own IOC list to match against loaded apps by Client ID. The dashboard does not ship with a pre-populated list. See <code>iocs/iocs.example.json</code> for the expected schema.</p>
+
+                <div class="import-slot import-slot-ioc">
+                    <h3>IOC List (JSON)</h3>
+                    <input type="file" accept=".json" id="ioc-file-input">
+                    <div class="slot-status" id="ioc-status"></div>
+                </div>
+            </div>
+
+            <!-- Security notice -->
+            <div class="security-notice">
+                <strong>Security model:</strong> All file parsing and analysis runs entirely in your browser. No data is transmitted to any server. No data is persisted between sessions. No telemetry or analytics of any kind.
             </div>
 
             <div id="import-summary" class="hidden">
