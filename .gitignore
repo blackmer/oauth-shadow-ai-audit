@@ -8,3 +8,11 @@ BUILD-STATUS.md
 .idea/
 node_modules/
 .env
+
+# Internal working docs — never commit to repo
+CLAUDE.md
+PRD-*.md
+VALIDATION-*.md
+BUILD-STATUS.md
+notes/
+briefs/
