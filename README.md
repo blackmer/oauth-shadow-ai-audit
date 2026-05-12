@@ -21,16 +21,22 @@ v0.1.0 — Under active development. Private repository.
 
 ## Exporting data
 
+> **Heads up:** Admin console UIs change. If menu labels don't match exactly what you see, follow the equivalent path — the file schemas the dashboard expects are the source of truth.
+
 ### Google Workspace
 
 Requires **Super Admin** access to the Google Admin Console.
 
 **G1 — Accessed Apps (CSV)** — *required for Google audit*
 
-1. Sign in to **admin.google.com**.
+1. Sign in to **admin.google.com** as a Super Admin.
 2. Navigate to **Security** > **Access and data control** > **API controls** > **App access control**.
-3. Click **MANAGE APP ACCESS**, then select the **Accessed apps** tab.
-4. Click **Download** (CSV icon). Save the file.
+3. Click **MANAGE APP ACCESS**.
+4. In the tile carousel, find the **Accessed apps** tile (scroll right if needed).
+5. Click **View list**.
+6. Click **Download list** at the top of the list.
+7. In the format dialog, select **Comma-separated values (.csv)** and click **Download**.
+8. The file appears in your **Tasks** list when ready — open from there.
 
 Provides: app inventory, scopes by service, verification status, ownership classification.
 
@@ -58,8 +64,11 @@ Requires at minimum **Global Reader** or **Application Administrator** role.
 **M1 — Enterprise Applications (CSV)**
 
 1. Sign in to **entra.microsoft.com**.
-2. Navigate to **Identity** > **Applications** > **Enterprise applications** > **All applications**.
-3. Click **Download** (export the list as CSV). Save the file.
+2. Browse to **Entra ID** > **Enterprise apps** > **All applications**.
+3. Click **Download (Export)**.
+4. In the *Bulk Jobs Default* panel, optionally rename the file, then click **Start bulk operation**.
+5. Click the link below the button to view bulk operation status.
+6. When the operation completes, click the file link on the Bulk Operations page to download.
 
 Provides: app inventory metadata (names, IDs, creation dates). Does not include scopes or permissions.
 

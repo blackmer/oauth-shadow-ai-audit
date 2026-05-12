@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'">
     <title>OAuth & Shadow AI Control Audit Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="styles/main.css?v=0.1.1">
 </head>
 <body>
@@ -19,6 +20,7 @@
             <h2>Import Data Files</h2>
             <p>This dashboard audits OAuth application access in your Google Workspace and Microsoft 365 tenants. All processing happens in your browser — no data is transmitted anywhere.</p>
             <p>Export the files below from your admin consoles, then upload them here. You can load files from one or both platforms. The dashboard degrades gracefully when files are missing — see the feature matrix below each section.</p>
+            <p class="ui-notice"><strong>Heads up:</strong> Admin console UIs change. If menu labels in the steps below don't match exactly what you see, follow the equivalent path — the file schemas the dashboard expects are the source of truth.</p>
 
             <!-- Google Workspace -->
             <div class="onboarding-section">
@@ -33,8 +35,12 @@
                             <ol>
                                 <li>Sign in to <strong>admin.google.com</strong> as a Super Admin.</li>
                                 <li>Navigate to <strong>Security</strong> &rarr; <strong>Access and data control</strong> &rarr; <strong>API controls</strong> &rarr; <strong>App access control</strong>.</li>
-                                <li>Click <strong>MANAGE APP ACCESS</strong>, then select the <strong>Accessed apps</strong> tab.</li>
-                                <li>Click <strong>Download</strong> (CSV icon). Save the file.</li>
+                                <li>Click <strong>MANAGE APP ACCESS</strong>.</li>
+                                <li>In the tile carousel, find the <strong>Accessed apps</strong> tile (scroll right if needed).</li>
+                                <li>Click <strong>View list</strong>.</li>
+                                <li>Click <strong>Download list</strong> at the top of the list.</li>
+                                <li>In the format dialog, select <strong>Comma-separated values (.csv)</strong> and click <strong>Download</strong>.</li>
+                                <li>The file appears in your <strong>Tasks</strong> list when ready — open from there.</li>
                             </ol>
                             <p class="instruction-provides">Provides: app inventory, scopes by service, verification status, ownership classification.</p>
                         </div>
@@ -94,8 +100,11 @@
                             <h4>M1 — Enterprise Applications CSV</h4>
                             <ol>
                                 <li>Sign in to <strong>entra.microsoft.com</strong>.</li>
-                                <li>Navigate to <strong>Identity</strong> &rarr; <strong>Applications</strong> &rarr; <strong>Enterprise applications</strong> &rarr; <strong>All applications</strong>.</li>
-                                <li>Click <strong>Download</strong> (export the list as CSV). Save the file.</li>
+                                <li>Browse to <strong>Entra ID</strong> &rarr; <strong>Enterprise apps</strong> &rarr; <strong>All applications</strong>.</li>
+                                <li>Click <strong>Download (Export)</strong>.</li>
+                                <li>In the <em>Bulk Jobs Default</em> panel, optionally rename the file, then click <strong>Start bulk operation</strong>.</li>
+                                <li>Click the link below the button to view bulk operation status.</li>
+                                <li>When the operation completes, click the file link on the Bulk Operations page to download.</li>
                             </ol>
                             <p class="instruction-provides">Provides: app inventory metadata (names, IDs, creation dates). Does not include scopes or permissions.</p>
                         </div>
