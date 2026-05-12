@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] — 2026-05-12
+
+### Added
+
+- `favicon.svg` and corresponding `<link>` reference in `index.html`. Eliminates `/favicon.ico` 404 in server logs and adds a browser tab icon.
+- UI-drift disclaimer in both README and dashboard import panel, noting that admin console UIs change and the file schemas are the source of truth.
+- `docs/screenshots/dashboard_screenshot.png` — dashboard reference screenshot for README.
+- `docs/security-verification-network-trace.png` — canonical reference for clean-load network trace, referenced from README security section.
+
+### Changed
+
+- Promoted `README.md` from `docs/` to repo root for GitHub default rendering.
+- README opener rewritten — removed marketing-style framing in favor of factual product description.
+
+### Fixed
+
+- G1 (Google Accessed Apps) export instructions corrected against live admin console (verified 2026-05-12). Adds missing intermediate steps: tile carousel navigation, "View list" click, "Download list" action, format dialog, and Tasks list retrieval. Previous instructions referenced a non-existent "Accessed apps tab" and "CSV icon."
+- M1 (Microsoft Enterprise Applications) export instructions corrected against live Entra admin center (verified 2026-05-12). Nav path updated to `Entra ID → Enterprise apps → All applications` (previously `Identity → Applications → Enterprise applications → All applications`). Documents the async bulk-operations flow.
+
 ## [0.1.0] — 2026-05-05
 
 ### Added
