@@ -2,11 +2,15 @@
 
 A browser-based dashboard that audits OAuth application and service principal access in Google Workspace and Microsoft 365 / Entra ID tenants.
 
-**Security model:** All processing happens client-side. No backend, no data transmission, no persistence, no telemetry.
+Load CSV and JSON exports from your admin consoles; the dashboard returns findings ranked by a scope risk taxonomy you can inspect and edit. All processing happens client-side — no backend, no data transmission, no persistence, no telemetry.
+
+![OAuth dashboard showing KPI tiles and a drill-down of apps granted more than 90 days ago](docs/screenshots/dashboard_screenshot.png)
+
+Built by [Marc Blackmer](https://blackmer.ai), Blackmer Advisory.
 
 ## Status
 
-v0.1.0 — Under active development. Private repository.
+v0.1.1 — Early release. Issues and pull requests welcome.
 
 ## Quick start
 
