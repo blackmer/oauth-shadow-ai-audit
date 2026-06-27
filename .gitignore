@@ -1,18 +1,88 @@
-validation-data/
-BUILD-STATUS.md
-.DS_Store
-*.swp
-*.swo
-*~
-.vscode/
-.idea/
-node_modules/
-.env
+# ──────────────────────────────────────────────────────────────────
+# Canonical .gitignore template for Blackmer Advisory repos
+# Source: ~/repos/agent-context/repo-init/gitignore.template
+# Install: cp gitignore.template <new-repo>/.gitignore
+# ──────────────────────────────────────────────────────────────────
 
-# Internal working docs — never commit to repo
-CLAUDE.md
+# ── Internal working docs — never commit ─────────────────────────
+# These contain client context, PRD drafts, validation data, agent
+# briefings, or other content not intended for public repos.
+# Note: CLAUDE.md is NOT ignored — it is a committed one-line `@AGENTS.md`
+# bridge (Claude Code auto-loads CLAUDE.md, not AGENTS.md). Machine-local
+# Claude notes go in CLAUDE.local.md, ignored under "Claude Code" below.
 PRD-*.md
 VALIDATION-*.md
 BUILD-STATUS.md
 notes/
 briefs/
+drafts/
+scratch/
+private/
+
+# ── Tenant data and fixtures ─────────────────────────────────────
+validation-data/
+fixtures/
+*tenant-data*
+*-private.*
+
+# ── Credentials and secrets ──────────────────────────────────────
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+*credentials*
+*.p12
+*.pfx
+
+# ── macOS ────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+
+# ── Editor and IDE ───────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# ── Claude Code ──────────────────────────────────────────────────
+# Machine-local permission grants. Versioned settings live in
+# .claude/settings.json; .local.json is per-machine and uncommitted.
+.claude/settings.local.json
+# Machine-local / Claude-specific notes. The committed CLAUDE.md is only the
+# `@AGENTS.md` bridge; anything private or per-machine goes here, uncommitted.
+CLAUDE.local.md
+
+# ── Node ─────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Python ───────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+
+# ── Build artifacts ──────────────────────────────────────────────
+dist/
+build/
+*.log
+
+# ── OS / utilities ───────────────────────────────────────────────
+Thumbs.db
+.directory
